@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+env/
+*.egg-info/
+
+# Secrets
+.env
+
+# Generated artifacts
+task2/tz_dataset.csv
+task2/tz_classifier.joblib
+task3/data/
+task3/__pycache__/
+
+# OS
+.DS_Store
+Thumbs.db
