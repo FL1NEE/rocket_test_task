@@ -1,0 +1,43 @@
+name: checkstock
+
+services:
+  db:
+    image: postgres:17-alpine@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24
+    environment:
+      POSTGRES_USER: checkstock
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: checkstock
+    ports:
+      - "127.0.0.1:55432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U checkstock -d checkstock"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+
+  app:
+    build: .
+    environment:
+      DATABASE_URL: postgresql+psycopg2://checkstock:${POSTGRES_PASSWORD}@db:5432/checkstock
+      CHECKSTOCK_USERNAME: ${CHECKSTOCK_USERNAME:?set CHECKSTOCK_USERNAME in .env}
+      CHECKSTOCK_PASSWORD: ${CHECKSTOCK_PASSWORD:?set CHECKSTOCK_PASSWORD in .env}
+      CHECKSTOCK_ALLOWED_HOSTS: ${CHECKSTOCK_ALLOWED_HOSTS:-localhost,127.0.0.1}
+    ports:
+      - "127.0.0.1:8000:8000"
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  pgdata:

@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CheckStock</title>
+<link rel="stylesheet" href="/static/app.css">
+<script src="/static/app.js" defer></script>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand"><strong>CheckStock</strong><span>Где сейчас товар?</span></div>
+  <div id="reconcile" class="reconcile" aria-live="polite"></div>
+</header>
+
+<nav class="tabs" role="tablist" aria-label="Разделы">
+  <button type="button" role="tab" data-tab="stock">Остатки</button>
+  <button type="button" role="tab" data-tab="warehouses">Склады и приход</button>
+  <button type="button" role="tab" data-tab="movements">Перемещения</button>
+  <button type="button" role="tab" data-tab="fbs">FBS</button>
+  <button type="button" role="tab" data-tab="fbo">FBO</button>
+  <button type="button" role="tab" data-tab="history">История</button>
+</nav>
+
+<main>
+  <section data-panel="stock" role="tabpanel">
+    <h2>Остатки по артикулам и складам</h2>
+    <p class="hint">Физ. — лежит на складе, Дост. — можно отгрузить, Резерв FBS — заблокировано под заказы.</p>
+    <div id="stock-matrix" class="table-wrap"></div>
+    <h3>Товар в пути</h3>
+    <div id="in-transit" class="table-wrap"></div>
+  </section>
+
+  <section data-panel="warehouses" role="tabpanel" hidden>
+    <h2>Склады фулфилмента</h2>
+    <div class="forms">
+      <form class="card" data-form="warehouse-create" novalidate>
+        <h3>Новый склад</h3>
+        <label>Название<input name="name" maxlength="100" autocomplete="off" required></label>
+        <button type="submit" class="btn primary">Добавить склад</button>
+        <p class="form-msg" role="status"></p>
+      </form>
+      <form class="card" data-form="receipt" novalidate>
+        <h3>Приход товара</h3>
+        <label>Товар<select name="product_id" data-ref="products" required></select></label>
+        <label>Склад<select name="warehouse_id" data-ref="active-warehouses" required></select></label>
+        <label>Количество<input name="qty" type="number" min="1" max="1000000" step="1" value="1" required></label>
+        <button type="submit" class="btn primary">Оприходовать</button>
+        <p class="form-msg" role="status"></p>
+      </form>
+    </div>
+    <p class="hint">Удалённый склад остаётся в учёте, пока на нём есть товар: с него можно только вывезти остаток.</p>
+    <div id="warehouse-list" class="table-wrap"></div>
+  </section>
+
+  <section data-panel="movements" role="tabpanel" hidden>
+    <h2>Перемещения между ФФ</h2>
+    <form class="card row" data-form="movement" novalidate>
+      <label>Товар<select name="product_id" data-ref="products" required></select></label>
+      <label>Откуда<select name="from_warehouse_id" data-ref="source-warehouses" required></select></label>
+      <label>Куда<select name="to_warehouse_id" data-ref="active-warehouses" required></select></label>
+      <label>Количество<input name="qty" type="number" min="1" max="1000000" step="1" value="1" required></label>
+      <button type="submit" class="btn primary">Отправить</button>
+      <p class="form-msg" role="status"></p>
+    </form>
+    <div id="movement-list" class="table-wrap"></div>
+  </section>
+
+  <section data-panel="fbs" role="tabpanel" hidden>
+    <h2>Заказы FBS — резерв и отправка клиенту</h2>
+    <form class="card row" data-form="fbs" data-shortage="fbs" novalidate>
+      <label>Товар<select name="product_id" data-ref="products" required></select></label>
+      <label>Склад<select name="warehouse_id" data-ref="active-warehouses" required></select></label>
+      <label>Количество<input name="qty" type="number" min="1" max="1000000" step="1" value="1" required></label>
+      <button type="submit" class="btn primary">Зарезервировать</button>
+      <p class="form-msg" role="status"></p>
+      <div class="shortage" hidden></div>
+    </form>
+    <div id="fbs-list" class="table-wrap"></div>
+  </section>
+
+  <section data-panel="fbo" role="tabpanel" hidden>
+    <h2>Поставки FBO — на склад маркетплейса</h2>
+    <form class="card row" data-form="fbo" data-shortage="fbo" novalidate>
+      <label>Товар<select name="product_id" data-ref="products" required></select></label>
+      <label>Склад<select name="warehouse_id" data-ref="source-warehouses" required></select></label>
+      <label>Количество<input name="qty" type="number" min="1" max="1000000" step="1" value="1" required></label>
+      <button type="submit" class="btn primary">Отгрузить</button>
+      <p class="form-msg" role="status"></p>
+      <div class="shortage" hidden></div>
+    </form>
+    <div id="fbo-list" class="table-wrap"></div>
+  </section>
+
+  <section data-panel="history" role="tabpanel" hidden>
+    <h2>История операций</h2>
+    <div id="history-list" class="table-wrap"></div>
+  </section>
+</main>
+
+<div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+</body>
+</html>
